@@ -2,7 +2,7 @@
   <div class="login-container">
     <el-row :gutter="20">
       <el-col :span="4" :offset="7">
-        <el-button plain round class="login-button">
+        <el-button plain round class="login-button" @click="handleLogin">
           <div class="login-button-wrapper">
             <img class="login-button-img" :src="require('@/assets/imgs/welcome/login-button-gitlab.png')">
             <p class="login-button-title">使用 Gitlab 登录</p>
@@ -19,7 +19,12 @@
 
 <script>
 export default {
-  name: 'Login'
+  name: 'Login',
+  methods: {
+    handleLogin () {
+      this.$router.push('/authorization')
+    }
+  }
 }
 </script>
 

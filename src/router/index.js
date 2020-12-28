@@ -1,15 +1,23 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Welcome from '@/pages/welcome/Welcome'
 
 Vue.use(Router)
 
 export default new Router({
+  mode: 'history',
   routes: [
     {
       path: '/',
       name: 'Welcome',
-      component: Welcome
+      component: () => import('@/pages/welcome/Welcome')
+    }, {
+      path: '/authorization',
+      name: 'Authorization',
+      component: () => import('@/pages/authorization/Authorization')
+    }, {
+      path: '/workspace',
+      name: 'Workspace',
+      component: () => import('@/pages/workspace/Workspace')
     }
   ]
 })
