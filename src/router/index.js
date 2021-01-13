@@ -17,7 +17,17 @@ export default new Router({
     }, {
       path: '/workspace',
       name: 'Workspace',
-      component: () => import('@/pages/workspace/Workspace')
+      component: () => import('@/pages/workspace/Workspace'),
+      children: [{
+        path: 'system/user',
+        component: () => import('@/pages/workspace/components/system/User')
+      }, {
+        path: 'system/menu',
+        component: () => import('@/pages/workspace/components/system/Menu')
+      }, {
+        path: 'system/role',
+        component: () => import('@/pages/workspace/components/system/Role')
+      }]
     }
   ]
 })

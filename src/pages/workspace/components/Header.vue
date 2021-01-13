@@ -44,7 +44,8 @@ export default {
         this.$notify({
           title: '系统提示',
           message: '再次点击跳转到 Gitlab',
-          position: 'bottom-right'
+          position: 'bottom-right',
+          type: 'info'
         })
         setTimeout(() => {
           this.redirectToGitlab = false
