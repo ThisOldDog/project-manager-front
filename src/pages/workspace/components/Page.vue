@@ -3,7 +3,9 @@
     <el-tabs v-model="currentTab" @tab-click="handleTabSelect" closable @tab-remove="handleRemoveTab">
       <el-tab-pane v-for="tab of tabs" :key="tab.menuId" :label="tab.menuName" :name="tab.menuCode"></el-tab-pane>
     </el-tabs>
-    <router-view v-if="currentTab"></router-view>
+    <!-- <keep-alive> -->
+      <router-view v-if="currentTab"></router-view>
+    <!-- </keep-alive> -->
   </div>
 </template>
 

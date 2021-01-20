@@ -8,6 +8,7 @@ import axios from 'axios'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import '@styles/reset.css'
+import '@styles/global.css'
 
 Vue.config.productionTip = false
 Vue.prototype.$axios = axios
@@ -23,18 +24,27 @@ axios.interceptors.request.use(
   err => Promise.reject(err)
 )
 
-axios.interceptors.response.use(response => {
-  return response
-}, error => {
-  if (error && error.response) {
-    switch (error.response.status) {
-      case 401:
-        router.push('/')
-        break
+axios.interceptors.response.use(
+  response => {
+    return response
+  },
+  error => {
+    if (error && error.response) {
+      switch (error.response.status) {
+        case 401:
+          router.push('/')
+          break
+        case 500:
+          ElementUI.Notification.error({
+            title: '请求出现错误',
+            message: '[' + error.response.status + '] ' + (error.response.data.message ? error.response.data.message : error.response.data.error),
+            position: 'bottom-right'
+          })
+          break
+      }
     }
-  }
-  return Promise.reject(error)
-})
+    return Promise.reject(error)
+  })
 
 /* eslint-disable no-new */
 new Vue({

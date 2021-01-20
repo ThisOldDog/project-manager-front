@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-row>
+    <el-row :gutter="12">
       <el-col :offset="1" :span="2" class="lable-wrapper">
         <label class="title" for="username">用户名称：</label>
       </el-col>
@@ -20,13 +20,15 @@
         <el-checkbox v-model="condition.admin" name="admin"></el-checkbox>
       </el-col>
       <el-col :span="4" class="button-wrapper">
-        <el-button size="medium" @click="handleConditionReset">重置</el-button>
-        <el-button type="primary" size="medium" @click="handleQueryAndResetPage">查询</el-button>
+        <el-button-group>
+          <el-button size="medium" icon="el-icon-delete" @click="handleConditionReset">重置</el-button>
+          <el-button type="primary" size="medium" icon="el-icon-search" @click="handleQueryAndResetPage">查询</el-button>
+        </el-button-group>
       </el-col>
     </el-row>
     <el-row class="main-wrapper">
-      <el-col :offset="1" :span="22">
-        <el-table :data="users" style="width: 100%" border size="small" v-loading="loading" @sort-change="handleSortChange" :row-style="{height: '0'}">
+      <el-col :offset="1" :span="22" class="sub-wrapper">
+        <el-table :data="users"  row-key="userId" style="width: 100%" border size="small" v-loading="loading" @sort-change="handleSortChange" :row-style="{height: '0'}">
           <el-table-column prop="username" label="用户名称" sortable="custom" width="200"></el-table-column>
           <el-table-column prop="nickname" label="用户昵称"></el-table-column>
           <el-table-column prop="email" label="邮箱" width="320"></el-table-column>
@@ -68,6 +70,7 @@
 </template>
 
 <script>
+import RequestUtils from '@util/RequestUtils'
 export default {
   name: 'user-management',
   data () {
@@ -89,9 +92,7 @@ export default {
   },
   methods: {
     handleConditionReset () {
-      this.condition.username = ''
-      this.condition.email = ''
-      this.condition.admin = null
+      RequestUtils.clear(this.condition)
     },
     handleQueryAndResetPage () {
       this.loading = true
@@ -154,23 +155,7 @@ export default {
         .then(this.handleUsers)
     },
     buildQuery () {
-      let query = ''
-      // condition
-      for (let key in this.condition) {
-        const value = this.condition[key]
-        if (value) {
-          query += ((query ? '&' : '?') + key + '=' + value)
-        }
-      }
-      // page
-      query += ((query ? '&' : '?') + 'page=' + (this.pagable.page - 1) + '&size=' + this.pagable.size)
-      // sort
-      for (let field in this.pagable.sort) {
-        if (this.pagable.sort[field]) {
-          query += ((query ? '&' : '?') + 'sort=' + field + ',' + this.pagable.sort[field])
-        }
-      }
-      return query
+      return RequestUtils.buildQuery(this.condition, this.pagable)
     }
   },
   mounted () {
@@ -180,22 +165,4 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-  .lable-wrapper
-    text-align right
-    height 36px
-    line-height 36px
-    vertical-align middle
-  .input-wrapper
-    height 36px
-    line-height 36px
-    vertical-align middle
-  .button-wrapper
-    height 36px
-    line-height 36px
-    vertical-align middle
-  .main-wrapper
-    margin-top 32px
-  .pagination-wrapper
-    text-align end
-    margin-top 12px
 </style>
