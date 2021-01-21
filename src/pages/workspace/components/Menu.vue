@@ -1,5 +1,5 @@
 <template>
-  <el-menu class="menu" background-color="#545c64" text-color="#ffffff" active-text-color="#ffd04b" :unique-opened="true" @select="handleMenuSelect">
+  <el-menu class="menu" background-color="#545c64" text-color="#ffffff" active-text-color="#ffd04b" :unique-opened="true" @select="handleMenuSelect" :default-active="activeIndex">
     <workspace-menu-item :menus="menus"></workspace-menu-item>
   </el-menu>
 </template>
@@ -12,7 +12,8 @@ export default {
     WorkspaceMenuItem
   },
   props: {
-    menus: Array
+    menus: Array,
+    activeIndex: String
   },
   methods: {
     handleMenuSelect (index, indexPath) {

@@ -6,7 +6,7 @@
       </el-header>
       <el-container class="workspace">
         <el-aside class="aside" style="width: 220px">
-          <workspace-menu :menus="menus" @menuSelect="handleMenuSelect"></workspace-menu>
+          <workspace-menu :menus="menus" :activeIndex="activeMenu ? activeMenu.menuCode : null" @menuSelect="handleMenuSelect"></workspace-menu>
         </el-aside>
         <el-main>
           <workspace-page ref="page"></workspace-page>
@@ -42,6 +42,24 @@ export default {
     },
     handleMenu (response) {
       this.menus = response.data
+      this.activeMenu = this.findActiveMenu(this.menus, this.$route.path)
+      if (this.activeMenu) {
+        this.$refs.page.pushTab(this.activeMenu)
+      }
+    },
+    findActiveMenu (menus, activePath) {
+      for (let i = 0; i < menus.length; i++) {
+        const menu = menus[i]
+        if (menu.subMenuList && menu.subMenuList.length > 0) {
+          const activeMenu = this.findActiveMenu(menu.subMenuList, activePath)
+          if (activeMenu) {
+            return activeMenu
+          }
+        } else if (menu.menuType === 'PAGE' && menu.pageRoute === activePath) {
+          return menu
+        }
+      }
+      return null
     },
     handleMenuSelect (menu) {
       this.$refs.page.pushTab(menu)

@@ -4,7 +4,7 @@
       <el-tab-pane v-for="tab of tabs" :key="tab.menuId" :label="tab.menuName" :name="tab.menuCode"></el-tab-pane>
     </el-tabs>
     <!-- <keep-alive> -->
-      <router-view v-if="currentTab"></router-view>
+      <router-view v-if="Boolean(currentTab)"></router-view>
     <!-- </keep-alive> -->
   </div>
 </template>
@@ -38,7 +38,7 @@ export default {
         }
         this.previouTab = this.currentTab
         for (let i = 0; i < this.tabs.length; i++) {
-          if (this.tabs[i].menuCode === this.currentTab) {
+          if (this.tabs[i].menuCode === this.currentTab && this.tabs[i].pageRoute !== this.$route.path) {
             this.$router.push({path: this.tabs[i].pageRoute})
             return
           }
