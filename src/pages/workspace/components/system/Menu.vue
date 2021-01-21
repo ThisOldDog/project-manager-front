@@ -57,9 +57,11 @@
           <el-table-column prop="pageRoute" label="页面路由"></el-table-column>
           <el-table-column fixed="right" label="操作" width="200">
             <template slot-scope="scope">
-              <el-button v-if="scope.row.menuType === 'DIRECTORY'" @click="handleCreate(scope.row)" type="text" size="small">新建子菜单</el-button>
-              <el-button @click="handleUpdate(scope.row)" type="text" size="small">编辑</el-button>
-              <el-button @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+              <el-button v-if="scope.row.menuType === 'DIRECTORY'" @click="handleEditor(scope.row)" type="text" size="small">新建子菜单</el-button>
+              <el-button @click="handleEditor(scope.row, 'update')" type="text" size="small">编辑</el-button>
+              <el-popconfirm :title="'确定要删除菜单 ' + scope.row.menuName + ' 及其子菜单吗？'" @confirm="handleDelete(scope.row)">
+                <el-button slot="reference" type="text" size="small">删除</el-button>
+              </el-popconfirm>
             </template>
           </el-table-column>
         </el-table>
@@ -69,8 +71,11 @@
       <el-divider></el-divider>
       <el-form :model="editor.value" :rules="rules" label-width="80px" size="medium" class="form-wrapper" ref="editor">
         <div class="form-body">
+          <el-form-item v-if="editor.value.parentId" label="上级菜单" prop="parentName">
+            <el-input v-model="editor.value.parentName" disabled></el-input>
+          </el-form-item>
           <el-form-item label="菜单编码" prop="menuCode">
-            <el-input v-model="editor.value.menuCode"></el-input>
+            <el-input v-model="editor.value.menuCode" :disabled="Boolean(editor.value.menuId)"></el-input>
           </el-form-item>
           <el-form-item label="菜单名称" prop="menuName">
             <el-input v-model="editor.value.menuName"></el-input>
@@ -89,13 +94,13 @@
             <el-input-number size="medium" controls-position="right" v-model="editor.value.sortNumber" :min="-2147483648" :max="2147483647" label="菜单顺序" :step="10" :precision="0"></el-input-number>
           </el-form-item>
           <el-form-item label="菜单类型" prop="menuType">
-            <el-select v-model="editor.value.menuType" filterable placeholder="请选择类型">
+            <el-select v-model="editor.value.menuType" filterable placeholder="请选择类型" :disabled="Boolean(editor.value.menuId)">
               <el-option v-for="menuType in menuTypes" :key="menuType.value" :label="menuType.meaning" :value="menuType.value">
                 {{menuType.meaning}}
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="页面路由" prop="pageRoute">
+          <el-form-item v-if="pageRouteRequire" label="页面路由" prop="pageRoute">
             <el-input v-model="editor.value.pageRoute"></el-input>
           </el-form-item>
         </div>
@@ -111,6 +116,7 @@
 
 <script>
 import RequestUtils from '@util/RequestUtils'
+import ValueUtils from '@util/ValueUtils'
 import Icon from '@constant/Icon'
 import MenuType from '@constant/MenuType'
 export default {
@@ -137,6 +143,7 @@ export default {
           sortNumber: 0,
           menuType: '',
           parentId: 0,
+          parentName: '',
           pageRoute: null
         }
       },
@@ -145,7 +152,7 @@ export default {
       rules: {
         menuCode: [
           { required: true, message: '请输入菜单编码', trigger: 'blur' },
-          { pattern: /^[A-Z0-9\\.-]+$/, message: '菜单编码仅允许大写字母、数字、英文句号以及中划线', trigger: 'change' },
+          { pattern: /^[A-Z0-9\\._-]+$/, message: '菜单编码仅允许大写字母、数字、英文句号、下划线以及中划线', trigger: 'change' },
           { min: 4, max: 32, message: '菜单编码长度必须在 4 到 32 之间', trigger: 'blur' }
         ],
         menuName: [
@@ -189,11 +196,20 @@ export default {
         }
       })
     },
-    handleEditor () {
+    handleEditor (menu, mode) {
+      if (!mode || mode === 'create') {
+        if (menu.menuId && menu.menuName) {
+          this.editor.value.parentId = menu.menuId
+          this.editor.value.parentName = menu.menuName
+        }
+      } else if (mode === 'update') {
+        ValueUtils.copy(menu, this.editor.value)
+      }
       this.editor.visible = true
     },
     handleEditorClose () {
       this.editor.visible = false
+      this.editor.loading = false
       RequestUtils.clear(this.editor.value)
     },
     handleEditorCloseWithButtonAction () {
@@ -211,18 +227,23 @@ export default {
         if (valid) {
           let editor = this.editor
           editor.loading = true
-          this.$axios.post('/api/menu', menu)
-            .then(_ => {
-              this.handleEditorClose()
-              this.loadMenu()
-            })
-            .catch(function () {
-              editor.loading = false
-            })
+          this.$axios.request({
+            url: menu.menuId ? ('/api/menu/' + menu.menuId) : '/api/menu',
+            method: menu.menuId ? 'put' : 'post',
+            data: menu
+          }).then(_ => {
+            this.handleEditorClose()
+            this.loadMenu()
+          }).catch(function () {
+            editor.loading = false
+          })
         }
       })
     },
-    handleUpdate (row) {
+    handleDelete (menu) {
+      this.loading = true
+      this.$axios.delete('/api/menu/' + menu.menuId)
+        .then(_ => this.loadMenu())
     },
     handleMenuTree (response) {
       this.menus = response.data
@@ -235,7 +256,7 @@ export default {
   },
   computed: {
     pageRouteRequire () {
-      return this.editor.menuType === 'PAGE'
+      return this.editor.value.menuType === 'PAGE'
     }
   },
   watch: {
