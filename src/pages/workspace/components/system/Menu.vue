@@ -69,7 +69,7 @@
     </el-row>
     <el-drawer title="新建菜单" :visible.sync="editor.visible" direction="rtl" label-width="80px" :before-close="handleEditorCloseWithButtonAction">
       <el-divider></el-divider>
-      <el-form :model="editor.value" :rules="rules" label-width="80px" size="medium" class="form-wrapper" ref="editor">
+      <el-form :model="editor.value" :rules="editor.rules" label-width="80px" size="medium" class="form-wrapper" ref="editor">
         <div class="form-body">
           <el-form-item v-if="editor.value.parentId" label="上级菜单" prop="parentName">
             <el-input v-model="editor.value.parentName" disabled></el-input>
@@ -145,38 +145,38 @@ export default {
           parentId: 0,
           parentName: '',
           pageRoute: null
+        },
+        rules: {
+          menuCode: [
+            { required: true, message: '请输入菜单编码', trigger: 'blur' },
+            { pattern: /^[A-Z0-9\\._-]+$/, message: '菜单编码仅允许大写字母、数字、英文句号、下划线以及中划线', trigger: 'change' },
+            { min: 4, max: 32, message: '菜单编码长度必须在 4 到 32 之间', trigger: 'blur' }
+          ],
+          menuName: [
+            { required: true, message: '请输入菜单名称', trigger: 'blur' },
+            { min: 2, max: 32, message: '菜单名称长度必须在 2 到 32 之间', trigger: 'blur' }
+          ],
+          menuIcon: [
+            { required: true, message: '请选择菜单图标', trigger: 'blur' }
+          ],
+          sortNumber: [
+            { required: true, message: '请输入菜单顺序', trigger: 'blur' }
+          ],
+          menuType: [
+            { required: true, message: '请选择菜单类型', trigger: 'blur' }
+          ],
+          pageRoute: [
+            { required: false, message: '请输入页面路由', trigger: 'blur' }
+          ]
         }
       },
       icons: Icon.values,
-      menuTypes: MenuType.values,
-      rules: {
-        menuCode: [
-          { required: true, message: '请输入菜单编码', trigger: 'blur' },
-          { pattern: /^[A-Z0-9\\._-]+$/, message: '菜单编码仅允许大写字母、数字、英文句号、下划线以及中划线', trigger: 'change' },
-          { min: 4, max: 32, message: '菜单编码长度必须在 4 到 32 之间', trigger: 'blur' }
-        ],
-        menuName: [
-          { required: true, message: '请输入菜单名称', trigger: 'blur' },
-          { min: 2, max: 32, message: '菜单名称长度必须在 2 到 32 之间', trigger: 'blur' }
-        ],
-        menuIcon: [
-          { required: true, message: '请选择菜单图标', trigger: 'blur' }
-        ],
-        sortNumber: [
-          { required: true, message: '请输入菜单顺序', trigger: 'blur' }
-        ],
-        menuType: [
-          { required: true, message: '请选择菜单类型', trigger: 'blur' }
-        ],
-        pageRoute: [
-          { required: false, message: '请输入页面路由', trigger: 'blur' }
-        ]
-      }
+      menuTypes: MenuType.values
     }
   },
   methods: {
     handleConditionReset () {
-      RequestUtils.clear(this.condition)
+      ValueUtils.clear(this.condition)
     },
     handleQuery () {
       this.loading = true
@@ -210,7 +210,7 @@ export default {
     handleEditorClose () {
       this.editor.visible = false
       this.editor.loading = false
-      RequestUtils.clear(this.editor.value)
+      ValueUtils.clear(this.editor.value)
     },
     handleEditorCloseWithButtonAction () {
       if (this.editor.loading) {

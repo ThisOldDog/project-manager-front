@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="page-wrapper">
     <el-tabs v-model="currentTab" @tab-click="handleTabSelect" closable @tab-remove="handleRemoveTab">
       <el-tab-pane v-for="tab of tabs" :key="tab.menuId" :label="tab.menuName" :name="tab.menuCode"></el-tab-pane>
     </el-tabs>
@@ -70,5 +70,6 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-
+  .page-wrapper
+    height 100%
 </style>

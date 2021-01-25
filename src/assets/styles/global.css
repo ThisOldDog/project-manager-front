@@ -46,3 +46,9 @@
 .el-drawer__container ::-webkit-scrollbar{
   display: none;
 }
+.small-bottom-interval {
+  margin-bottom: 8px;
+}
+.el-popover {
+  min-width: 0;
+}
