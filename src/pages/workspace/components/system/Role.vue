@@ -10,7 +10,7 @@
         <span slot-scope="{ node, data }" class="node-wrapper">
           <el-tooltip effect="dark" :content="data.roleCode" placement="top">
             <div>
-              <i v-if="data.administrator" class="el-icon-star-on" style="color: orange"></i>
+              <i v-if="data.admin" class="el-icon-star-on" style="color: orange"></i>
               <span>{{node.label}}</span>
             </div>
           </el-tooltip>

@@ -145,8 +145,8 @@ export default {
       this.handleQuery()
     },
     handleUsers (response) {
-      this.users = response.data.content
-      this.pagable.total = response.data.totalElements
+      this.users = response.data.records
+      this.pagable.total = response.data.total
       this.pagable.size = response.data.size
       this.loading = false
     },
