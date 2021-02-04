@@ -39,6 +39,7 @@ module.exports = {
       '@util': resolve('src/util'),
       '@constant': resolve('src/constant'),
       '@styles': resolve('src/assets/styles'),
+      '@widget': resolve('src/components/widget'),
     }
   },
   module: {

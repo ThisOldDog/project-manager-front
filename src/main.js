@@ -6,6 +6,7 @@ import router from './router'
 import store from '@/store/index'
 import axios from 'axios'
 import ElementUI from 'element-ui'
+import TableSelector from '@widget/TableSelector'
 import 'element-ui/lib/theme-chalk/index.css'
 import '@styles/reset.css'
 import '@styles/global.css'
@@ -13,6 +14,7 @@ import '@styles/global.css'
 Vue.config.productionTip = false
 Vue.prototype.$axios = axios
 Vue.use(ElementUI)
+Vue.component('TableSelector', TableSelector)
 
 axios.interceptors.request.use(
   config => {

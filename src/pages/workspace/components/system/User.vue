@@ -71,6 +71,7 @@
 
 <script>
 import RequestUtils from '@util/RequestUtils'
+import ValueUtils from '@util/ValueUtils'
 export default {
   name: 'user-management',
   data () {
@@ -92,7 +93,7 @@ export default {
   },
   methods: {
     handleConditionReset () {
-      RequestUtils.clear(this.condition)
+      ValueUtils.clear(this.condition)
     },
     handleQueryAndResetPage () {
       this.loading = true

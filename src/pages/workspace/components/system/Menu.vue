@@ -32,7 +32,7 @@
           <el-button size="small" icon="el-icon-caret-bottom" @click="handleUnfold">全部展开</el-button>
           <el-button size="small" icon="el-icon-caret-top" @click="handleFold">全部收起</el-button>
         </el-button-group>
-        <el-button type="primary" size="small" icon="el-icon-search" @click="handleEditor">新建菜单</el-button>
+        <el-button type="primary" size="small" icon="el-icon-plus" @click="handleEditor">新建菜单</el-button>
       </el-col>
       <el-col :offset="1" :span="22">
         <el-table ref="table" :data="menus" row-key="menuId"  style="width: 100%;" border size="small" default-expand-all :tree-props="{children: 'subMenuList'}" v-loading="loading">

@@ -1,5 +1,5 @@
 export default {
-  buildQuery: function (condition, pagable) {
+  buildQuery: function (condition, pagable, notEmpty) {
     let query = ''
     // condition
     for (let key in condition) {
@@ -11,7 +11,7 @@ export default {
     if (pagable) {
       if (pagable.page && pagable.size) {
         // page
-        query += ((query ? '&' : '?') + 'page=' + (pagable.page - 1) + '&size=' + pagable.size)
+        query += ((query ? '&' : '?') + 'page=' + pagable.page + '&size=' + pagable.size)
       }
       // sort
       if (pagable.sort) {
@@ -23,5 +23,12 @@ export default {
       }
     }
     return query
+  },
+  appendQuery: function (url, condition, pagable) {
+    if (url.indexOf('?') < 0) {
+      return url + this.buildQuery(condition, pagable)
+    } else {
+      return url + '&' + this.buildQuery(condition, pagable).substring(1)
+    }
   }
 }
