@@ -6,7 +6,7 @@
         <el-button type="primary" size="mini" class="col-wrapper" @click="handleEditor">新增角色</el-button>
         <el-button type="primary" size="mini" class="col-wrapper" @click="handleRefresh" :loading="loading">刷新</el-button>
       </el-button-group>
-      <el-tree class="filter-tree" :data="roles" :props="{ children: 'subRoleList', label: 'roleName'}" default-expand-all :filter-node-method="handleRoleFilter" ref="roleTree" :expand-on-click-node="false">
+      <el-tree class="filter-tree" :data="roles" :props="{ children: 'subRoleList', label: 'roleName'}" default-expand-all :filter-node-method="handleRoleFilter" ref="roleTree" :expand-on-click-node="false" v-loading="loading">
         <span slot-scope="{ node, data }" class="node-wrapper" @click="handleRoleSelect(data)">
           <el-tooltip effect="dark" :content="data.roleCode" placement="top">
             <div>
@@ -32,7 +32,7 @@
       </el-tree>
     </el-aside>
     <el-main>
-      <el-tabs v-if="editor.activeRoleId" type="border-card">
+      <el-tabs v-if="editor.activeRole.roleId" type="border-card">
         <el-tab-pane label="角色分配用户">
           <el-row :gutter="12">
             <el-col :span="2" class="lable-wrapper">
@@ -90,7 +90,35 @@
             </el-col>
           </el-row>
         </el-tab-pane>
-        <el-tab-pane label="角色分配菜单"></el-tab-pane>
+        <el-tab-pane label="角色分配菜单">
+          <el-row :gutter="12" style="margin-bottom: 12px;">
+            <el-col :span="10">
+              <el-input size="medium" placeholder="输入菜单编码或菜单名称进行过滤" v-model="editor.roleMenu.menuFilter"></el-input>
+            </el-col>
+            <el-col :span="14">
+              <el-button-group>
+                <el-button size="medium" @click="_ => this.editor.roleMenu.menuFilter = null">重置</el-button>
+                <el-button size="medium" type="primary" :loading="editor.roleMenu.loading > 0" @click="handleRoleMenuRefresh">刷新</el-button>
+              </el-button-group>
+            </el-col>
+          </el-row>
+          <el-tree class="filter-tree"
+            :data="editor.roleMenu.values"
+            :props="{ children: 'children', label: 'menu.menuName'}"
+            default-expand-all
+            :filter-node-method="handleMenuFilter"
+            show-checkbox @check-change="handleMenuCheck"
+            node-key="menuId"
+            :default-checked-keys="editor.roleMenu.defaulChecked"
+            v-loading="editor.roleMenu.loading"
+            ref="menuTree">
+            <span slot-scope="{ data }" class="node-wrapper">
+              <el-tooltip effect="dark" :content="data.menu.menuCode" placement="right">
+                <span>{{data.menu.menuName}}</span>
+              </el-tooltip>
+            </span>
+          </el-tree>
+        </el-tab-pane>
       </el-tabs>
     </el-main>
     <el-dialog :title="(editor.role.value.roleId ? '编辑' : '新建') + '角色'" :visible.sync="editor.role.visable" width="30%">
@@ -107,7 +135,7 @@
       </el-form>
       <div slot="footer">
         <el-button size="medium" @click="handleEditorClose">取 消</el-button>
-        <el-button size="medium" type="primary" @click="handleEditorClose('save')" :loading="editor.role.loading">确 定</el-button>
+        <el-button size="medium" type="primary" @click="handleEditorClose('save')" :loading="editor.role.loading > 0">确 定</el-button>
       </div>
     </el-dialog>
     <table-selector title="选择用户"
@@ -155,7 +183,7 @@ export default {
             ]
           }
         },
-        activeRoleId: null,
+        activeRole: {},
         roleUser: {
           condition: {
             username: '',
@@ -193,6 +221,12 @@ export default {
             name: '邮箱',
             width: 280
           }]
+        },
+        roleMenu: {
+          menuFilter: null,
+          values: [],
+          defaulChecked: [],
+          loading: 0
         }
       }
     }
@@ -246,8 +280,11 @@ export default {
       return data.roleName.indexOf(value) !== -1 || data.roleCode.indexOf(value) !== -1
     },
     handleRoleSelect (role) {
-      this.editor.activeRoleId = role.roleId
-      this.loadRoleUser()
+      if (role.roleId !== this.editor.activeRole.roleId) {
+        this.editor.activeRole = role
+        this.loadRoleUser()
+        this.loadRoleMenu()
+      }
     },
     // role user
     handleRoleUserConditionReset () {
@@ -283,11 +320,41 @@ export default {
     handleRoleUserEditorConfirm (users) {
       if (Array.isArray(users) && users.length > 0) {
         this.editor.roleUser.loading = true
-        this.$axios.post('/api/role/' + this.editor.activeRoleId + '/user', users)
+        this.$axios.post('/api/role/' + this.editor.activeRole.roleId + '/user', users)
           .then(_ => {
             this.loadRoleUser()
           })
       }
+    },
+    // role menu
+    handleMenuFilter (value, data) {
+      if (!value) {
+        return true
+      }
+      return data.menu.menuName.indexOf(value) !== -1 || data.menu.menuCode.indexOf(value) !== -1
+    },
+    handleMenuCheck (data, checked) {
+      if (data.menu.menuType === 'PAGE') {
+        if (checked && !data.roleMenuId) {
+          this.editor.roleMenu.loading++
+          this.$axios.post('/api/role/' + this.editor.activeRole.roleId + '/menu/' + data.menu.menuId)
+            .then(response => {
+              this.editor.roleMenu.loading--
+              data.roleMenuId = response.data.roleMenuId
+            })
+        } else if (!checked && data.roleMenuId) {
+          this.editor.roleMenu.loading++
+          this.$axios.delete('/api/role/menu/' + data.roleMenuId)
+            .then(_ => {
+              this.editor.roleMenu.loading--
+              data.roleMenuId = null
+            })
+        }
+      }
+    },
+    handleRoleMenuRefresh () {
+      this.editor.roleMenu.loading++
+      this.loadRoleMenu()
     },
     // data
     handleRoleTree (response) {
@@ -300,24 +367,52 @@ export default {
       this.editor.roleUser.pagable.size = response.data.size
       this.editor.roleUser.loading = false
     },
+    handleRoleMenu (response) {
+      this.editor.roleMenu.defaulChecked = []
+      this.filterChecked(response.data, this.editor.roleMenu.defaulChecked)
+      this.editor.roleMenu.values = response.data
+      this.editor.roleMenu.loading = 0
+    },
+    filterChecked (data, checked) {
+      for (let i = 0; i < data.length; i++) {
+        data[i].menuId = data[i].menu.menuId
+        if (data[i].roleMenuId || this.editor.activeRole.admin) {
+          checked.push(data[i].menu.menuId)
+        }
+        data[i].disabled = this.editor.activeRole.admin
+        if (data[i].hasChild) {
+          this.filterChecked(data[i].children, checked)
+        }
+      }
+    },
     // request
     loadRole () {
       this.$axios.get('/api/role/tree')
         .then(this.handleRoleTree)
     },
     loadRoleUser () {
-      this.$axios.get('/api/role/' + this.editor.activeRoleId + '/user' + RequestUtils.buildQuery(this.editor.roleUser.condition, this.editor.roleUser.pagable))
+      this.$axios.get('/api/role/' + this.editor.activeRole.roleId + '/user' + RequestUtils.buildQuery(this.editor.roleUser.condition, this.editor.roleUser.pagable))
         .then(this.handleRoleUser)
+    },
+    loadRoleMenu () {
+      this.$axios.get('/api/role/' + this.editor.activeRole.roleId + '/menu/tree')
+        .then(this.handleRoleMenu)
     }
   },
   watch: {
     roleFilter (val) {
       this.$refs.roleTree.filter(val)
+    },
+    menuFilter (val) {
+      this.$refs.menuTree.filter(val)
     }
   },
   computed: {
     roleUserUrl () {
-      return '/api/user?withoutRoleId=' + this.editor.activeRoleId
+      return '/api/user?withoutAdmin=true&withoutRoleId=' + this.editor.activeRole.roleId
+    },
+    menuFilter () {
+      return this.editor.roleMenu.menuFilter
     }
   },
   mounted () {

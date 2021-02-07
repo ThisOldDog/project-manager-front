@@ -69,7 +69,7 @@ export default {
     this.$axios.get('/api/user/account')
       .then(response => {
         this.handleUser(response)
-        this.$axios.get('/api/menu/tree')
+        this.$axios.get('/api/user/menu/tree')
           .then(this.handleMenu)
       })
   }
